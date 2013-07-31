@@ -4,7 +4,7 @@ KnewtonMRTools
 -------------
 SHORT SUMMARY
 -------------
-The MRTool library includes examples of Record Readers and InputFormats
+The KnewtonMRTools library includes examples of Record Readers and InputFormats
 that can be used in MapReduce jobs.
 
 Currently included tools:
