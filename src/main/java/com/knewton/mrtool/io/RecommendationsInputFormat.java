@@ -32,20 +32,7 @@ public class RecommendationsInputFormat extends
     public RecordReader<LongWritable, RecommendationWritable> createRecordReader(InputSplit split,
             TaskAttemptContext context) throws IOException, InterruptedException {
 
-        return new JsonRecordReader<RecommendationWritable>() {
-
-            /**
-             * {@inheritDoc}
-             */
-            @Override
-            public void initialize(InputSplit split, TaskAttemptContext context)
-                    throws IOException, InterruptedException {
-                super.initialize(split, context);
-                FileSplit fileSplit = (FileSplit) split;
-                // decorate json record with originating filename.
-                addDecorator(new JsonFilenameDecorator(fileSplit.getPath().getName()));
-            }
-
+        JsonRecordReader rr = new JsonRecordReader<RecommendationWritable>() {
             /**
              * {@inheritDoc}
              */
@@ -54,6 +41,10 @@ public class RecommendationsInputFormat extends
                 return RecommendationWritable.class;
             }
         };
+        FileSplit fileSplit = (FileSplit) split;
+        rr.addDecorator(new JsonFilenameDecorator(fileSplit.getPath().getName()));
+        
+        return rr;
     }
 
 }
