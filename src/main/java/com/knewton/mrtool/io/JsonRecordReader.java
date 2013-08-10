@@ -28,12 +28,14 @@ import java.util.List;
 
 /**
  * JSON record reader that reads files containing json objects and returns back a deserialized
- * instantiated object of type V. The json deserialization happens with gson.
+ * instantiated object of type V. The json deserialization happens with gson. Note that this record
+ * reader doesn't yet take advantage of splittable compressed codecs.
  * 
  * @author Giannis Neokleous
  * 
  * @param <V>
  */
+// TODO: Add support for splittable compressed codecs.
 public abstract class JsonRecordReader<V extends Writable>
         extends RecordReader<LongWritable, V> {
 
@@ -54,6 +56,7 @@ public abstract class JsonRecordReader<V extends Writable>
     public JsonRecordReader() {
         gsonBuilder = new GsonBuilder();
         decorators = Lists.newArrayList();
+        gson = gsonBuilder.create();
     }
 
     /**
@@ -74,7 +77,6 @@ public abstract class JsonRecordReader<V extends Writable>
         in = initLineReader(fileSplit, conf);
 
         pos = start;
-        gson = gsonBuilder.create();
     }
 
     /**
