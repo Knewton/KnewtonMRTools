@@ -32,7 +32,7 @@ public class RecommendationsInputFormat extends
     public RecordReader<LongWritable, RecommendationWritable> createRecordReader(InputSplit split,
             TaskAttemptContext context) throws IOException, InterruptedException {
 
-        JsonRecordReader rr = new JsonRecordReader<RecommendationWritable>() {
+        JsonRecordReader<RecommendationWritable> rr = new JsonRecordReader<RecommendationWritable>() {
             /**
              * {@inheritDoc}
              */

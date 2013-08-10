@@ -11,6 +11,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.Seekable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
@@ -49,6 +50,7 @@ public abstract class JsonRecordReader<V extends Writable>
     private Gson gson;
     private GsonBuilder gsonBuilder;
     private List<ObjectDecorator<String>> decorators;
+    private Seekable seekableIn;
 
     public static final String APPEND_FILENAME_TO_JSON =
             "com.knewton.mapreduce.jsonrecordreader.append_filename";
@@ -94,11 +96,11 @@ public abstract class JsonRecordReader<V extends Writable>
         final CompressionCodec codec = compressionCodecs.getCodec(file);
         FileSystem fs = file.getFileSystem(conf);
         FSDataInputStream fileIn = fs.open(fileSplit.getPath());
+        seekableIn = fileIn;
         boolean skipFirstLine = false;
         LineReader lineReader;
         if (codec != null) {
             lineReader = new LineReader(codec.createInputStream(fileIn), conf);
-            end = Long.MAX_VALUE;
         } else {
             // if the start is not the beginning of the file then skip the first line to get the
             // next complete json record. The previous json record will be read by the record reader
@@ -132,7 +134,7 @@ public abstract class JsonRecordReader<V extends Writable>
 
         Text jsonText = new Text();
         int newSize = 0;
-        if (pos < end) {
+        if (getFilePosition() <= end) {
             newSize = in.readLine(jsonText);
             if (newSize > 0 && !jsonText.toString().isEmpty()) {
                 for (ObjectDecorator<String> decorator : decorators) {
@@ -180,8 +182,19 @@ public abstract class JsonRecordReader<V extends Writable>
         if (start == end) {
             return 0.0f;
         } else {
-            return Math.max(0.0f, Math.min(1.0f, (pos - start) / (float) (end - start)));
+            return Math.max(0.0f,
+                    Math.min(1.0f, (getFilePosition() - start) / (float) (end - start)));
         }
+    }
+
+    /**
+     * Returns the position in the file taking into account compressed files.
+     * 
+     * @return
+     * @throws IOException
+     */
+    private long getFilePosition() throws IOException {
+        return seekableIn.getPos();
     }
 
     /**
